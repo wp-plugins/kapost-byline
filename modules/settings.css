@@ -1,0 +1,35 @@
+.kapost-byline-tabbed-settings 
+{ 
+	padding:10px;
+	padding-top:0px;
+	padding-bottom:0px;
+	border: 1px solid #DFDFDF; 
+	margin-top:0px;
+	display:block;
+	-moz-border-radius:4px 4px 4px 4px; 
+	-webkit-border-radius:4px 4px 4px 4px; 
+	border-radius:4px 4px 4px 4px;
+}
+a.kapost-byline-tab, a.kapost-byline-tab:active, a.kapost-byline-tab:visited
+{
+	text-decoration:none;
+	display:inline-block;
+	margin:0px;
+	margin-left:10px;
+	margin-bottom:-1px;
+	padding:5px;
+	border:1px solid #DFDFDF;
+	-moz-border-radius:4px 4px 0px 0px; 
+	-webkit-border-radius:4px 4px 0px 0px; 
+	border-radius:4px 4px 0px 0px;
+}
+a.kapost-byline-tab.selected, a.kapost-byline-tab:hover
+{
+	text-decoration:none;
+	border-bottom:1px solid #F9F9F9;
+}
+a.kapost-byline-tab.selected
+{
+	font-weight:bold;
+	color:#333333;
+}
