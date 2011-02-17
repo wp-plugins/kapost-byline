@@ -1,60 +1,13 @@
 <?php
-// See below (kapost_byline_post_meta) for the reason why we need this variable.
-static $kapost_byline_xmlrpc_post_id;
-// Search and massage all the required "Custom Fields".
-function kapost_byline_attribution_meta($id)
+function kapost_byline_create_user($custom_fields)
 {
-	$meta = array(); 
-	$meta_fields = array(	"kapost_author"=>"name",
-							"kapost_author_email"=>"email",
-							"kapost_author_profile"=>"profile",
-							"kapost_author_avatar"=>"avatar",
-							"kapost_post_timestamp"=>"created_at" );
-
-	foreach($meta_fields as $field=>$f)
-	{
-		$tmp = get_post_meta($id, $field, true);
-		if(empty($tmp)) return false;
-
-		$meta[$f] = $tmp;
-	}
-
-	return $meta;
-}
-// Creates a user for a given post based on the
-// included "Custom Fields", if an existing user
-// is found with the given email address then
-// it is used without any changes.
-function kapost_byline_create_user_for_post($id)
-{
-	$post = get_post($id);
-	if(!is_object($post)) return false;
-
-	$meta = kapost_byline_attribution_meta($id);
-	if($meta === false) return false;
-
-	$can_create_user = kapost_byline_can_create_user_for_attr();
-
-	// Handle custom types if possible	
-	if(KAPOST_BYLINE_WP3 && !defined('KAPOST_BYLINE_CUSTOM_TYPE'))
-	{
-		$tmp = get_post_meta($id, "kapost_custom_type", true);
-		if(!empty($tmp) && post_type_exists($tmp))
-		{
-			define('KAPOST_BYLINE_CUSTOM_TYPE',$tmp);
-			if(!$can_create_user) return $post; // trigger an update
-		}
-	}
-
-	if(!$can_create_user) return false;
-
 	require_once(ABSPATH . WPINC . '/registration.php');
 
-	$uid = email_exists($meta['email']);
+	$uid = email_exists($custom_fields['kapost_author_email']);
 	if(!$uid)
 	{
 		$c = 0;
-		$user_name = $user_login = str_replace(" ","",strtolower($meta['name']));
+		$user_name = $user_login = str_replace(" ","",strtolower($custom_fields['kapost_author']));
 
 		// FIXME: find a better way to do this
 		// Assuming 1000 collisions is safe enough for now, but there must be
@@ -69,56 +22,93 @@ function kapost_byline_create_user_for_post($id)
 		$uid = wp_insert_user(array(
 			'user_login'=>esc_sql($user_name),
 			'user_pass'=>wp_generate_password(12,false),
-			'user_email'=>esc_sql($meta['email']),
-			'user_url'=>esc_sql($meta['profile']),
-			'display_name'=>esc_sql($meta['name']),
+			'user_email'=>esc_sql($custom_fields['kapost_author_email']),
+			'user_url'=>esc_sql($custom_fields['kapost_author_profile']),
+			'display_name'=>esc_sql($custom_fields['kapost_author']),
 			'role'=>'contributor'
 		));
-
-		// Should never really happen
-		if(!$uid) return false;
 	}
 
-	// Override author
-	$post->post_author = $uid;
-	return $post;
+	return ($uid) ? $uid : false;
 }
-// We don't do anything here, see kapost_byline_post_meta() 
-// for more information regarding this issue.
-function kapost_byline_xmlrpc_publish_post($id)
+function kapost_byline_verify_custom_fields($custom_fields)
 {
-	global $kapost_byline_xmlrpc_post_id;
-	$kapost_byline_xmlrpc_post_id = $id;
-}
-// We still need this in order to handle the case when a post
-// has been submitted as draft and then published `manually`.
-// This is harmless if the metadata is not present anyway.
-function kapost_byline_publish_post($id)
-{
-	static $avoidRecursion;
-	if($avoidRecursion === true) return;
+	$required = array("kapost_author",
+					  "kapost_author_email",
+					  "kapost_author_profile",
+					  "kapost_author_avatar",
+					  "kapost_post_timestamp");
 
-	// Create the user for the post and update it if necessary
-	// and possible
-	if(($post = kapost_byline_create_user_for_post($id))!==false)
+	foreach($required as $field)
+		if(!array_key_exists($field, $custom_fields)) return false;
+
+	return $custom_fields;
+}
+function kapost_byline_custom_fields($raw_custom_fields)
+{
+	$custom_fields = array();
+	foreach($raw_custom_fields as $i=>$cf)
+		$custom_fields[$cf['key']] = $cf['value'];
+
+	return kapost_byline_verify_custom_fields($custom_fields);
+}
+/*
+ * We could make use the existing globals here but it's easier
+ * to grab the HTTP_RAW_POST_DATA and parse it into a message
+ * ourselves so we have access to all the custom fields even
+ * if they weren't inserted in the database yet.
+ *
+ * Also no need to validate the data again because if we are
+ * here it means that the XMLRPC "Server" exposed by WordPress
+ * processed this already and therefore the data is all sane
+ * and ready to be used.
+ */
+function kapost_byline_save_post($id)
+{
+	// GUARD: XMLRPC ONLY!
+	if(!defined('XMLRPC_REQUEST') || defined('KAPOST_BYLINE_XMLRPC')) return;
+
+	$message = new IXR_Message(trim(file_get_contents("php://input")));
+	if(!$message->parse()) return;
+
+	if($message->methodName != "metaWeblog.newPost") return;
+
+	if( !is_array($message->params[3]) ||
+		!is_array($message->params[3]['custom_fields']) ) return;
+
+	$custom_fields = kapost_byline_custom_fields($message->params[3]['custom_fields']);
+	if($custom_fields == false) return;
+
+	$post = get_post($id);
+	if(!is_object($post)) return;
+
+	$post_needs_update = false;
+
+	if(KAPOST_BYLINE_WP3 && isset($custom_fields['kapost_custom_type']))
 	{
-		$avoidRecursion = true;
+		$custom_type = $custom_fields['kapost_custom_type'];
+		if(!empty($custom_type) && post_type_exists($custom_type))
+		{
+			$post->post_type = $custom_type;
+			$post_needs_update = true;
+		}
+	}
+
+	if(kapost_byline_can_create_user_for_attr())
+	{
+		$uid = kapost_byline_create_user($custom_fields);
+		if($uid !== false && $post->post_author != $uid)
+		{
+			$post->post_author = $uid;
+			$post_needs_update = true;
+		}
+	}
+
+	if($post_needs_update)
+	{
+		define('KAPOST_BYLINE_XMLRPC', 1);
 		wp_update_post((array) $post);
-		$avoidRecursion = false;
 	}
 }
-// FIXME: this is very very bad and counter-intuitive but we must do this
-// because WordPress is not consistent when it comes to adding the custom
-// fields and therefore they are not available in the xmlrpc_publish_post
-// at the time the hook it is called (see xmlrpc.php for more information)
-function kapost_byline_post_meta($iid=false,$id=false,$key=false,$value=false)
-{
-	global $kapost_byline_xmlrpc_post_id;
-	if(!$kapost_byline_xmlrpc_post_id) return;
-
-	kapost_byline_publish_post($kapost_byline_xmlrpc_post_id);
-}
-add_action('publish_post','kapost_byline_publish_post');
-add_action('xmlrpc_publish_post','kapost_byline_xmlrpc_publish_post');
-add_action('added_postmeta','kapost_byline_post_meta');
+add_action('wp_insert_post', 'kapost_byline_save_post');
 ?>
