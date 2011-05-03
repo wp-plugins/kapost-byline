@@ -94,6 +94,21 @@ function kapost_byline_save_post($id)
 		}
 	}
 
+	if(isset($custom_fields['kapost_featured_image']))
+	{
+		// look up the image by URL which is the GUID (too bad there's NO wp_ specific method to do this, oh well!)
+		global $wpdb;
+		$thumbnail = $wpdb->get_row($wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE post_type = 'attachment' AND guid = %s", $custom_fields['kapost_featured_image']));
+
+		// if the image was found, set it as the featured image for the current post
+		if(!empty($thumbnail))
+		{
+			// We support 2.9 and up so let's do this the old fashioned way
+			// >= 3.0.1 and up has "set_post_thumbnail" available which does this little piece of mockery for us ...
+			update_post_meta($id, '_thumbnail_id', $thumbnail->ID);
+		}
+	}
+
 	if(kapost_byline_can_create_user_for_attr())
 	{
 		$uid = kapost_byline_create_user($custom_fields);
