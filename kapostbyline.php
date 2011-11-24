@@ -3,25 +3,21 @@
 	Plugin Name: Kapost Social Publishing Byline
 	Plugin URI: http://www.kapost.com/
 	Description: Kapost Social Publishing Byline
-	Version: 1.0.2
+	Version: 1.0.3
 	Author: Kapost
 	Author URI: http://www.kapost.com
 */
-define('KAPOST_BYLINE_VERSION', '1.0.2');
-define('KAPOST_BYLINE_FILENAME',__FILE__);
-define('KAPOST_BYLINE_BASENAME',plugin_basename(__FILE__));
-define('KAPOST_BYLINE_DIRNAME',str_replace(basename( __FILE__),'',plugin_basename(__FILE__)));
-define('KAPOST_BYLINE_DEFAULT_SETTINGS_KEY','kapost_byline_settings');
-define('KAPOST_BYLINE_WP3',(get_bloginfo('version') >= 3.0));
-
-$KAPOST_BYLINE_DEFAULT_SETTINGS = array('attr_create_user'=>'on');
-$modules = array
-(
-	'install.php',	
-	'common.inc',
-	'settings.php',
-	'attributions.php'
-);
-
-foreach($modules as $module) require_once(dirname(__FILE__).'/modules/'.$module);
+define('KAPOST_BYLINE_VERSION', '1.0.3');
+define('KAPOST_BYLINE_WP3', (get_bloginfo('version') >= 3.0));
+define('KAPOST_BYLINE_BASEPATH', dirname(__FILE__));
+define('KAPOST_BYLINE_FILENAME', __FILE__);
+define('KAPOST_BYLINE_BASENAME', plugin_basename(__FILE__));
+define('KAPOST_BYLINE_DIRNAME', str_replace(basename(__FILE__), '', plugin_basename(__FILE__)));
+define('KAPOST_BYLINE_DEFAULT_SETTINGS_KEY', 'kapost_byline_settings');
+function kapost_byline_bootstrap($mods)
+{
+	foreach($mods as $mod) 
+		require_once(KAPOST_BYLINE_BASEPATH . '/modules/' . $mod);
+}
+kapost_byline_bootstrap(array('install.php', 'settings.php', 'user.php', 'post.php', 'xmlrpc.php'));
 ?>

@@ -1,5 +1,18 @@
 <?php
-add_action('admin_init', 'kapost_byline_admin_init');
+function kapost_byline_settings_url()
+{
+	return admin_url('options-general.php?page='.KAPOST_BYLINE_DEFAULT_SETTINGS_KEY);
+}
+function kapost_byline_settings()
+{
+	$defaults = array('attr_create_user'=>'on');
+	return wp_parse_args((array) get_option(KAPOST_BYLINE_DEFAULT_SETTINGS_KEY), $defaults);
+}
+function kapost_byline_settings_update($settings)
+{
+	if(!is_array($settings)) $settings = array();
+	update_option(KAPOST_BYLINE_DEFAULT_SETTINGS_KEY,$settings);	
+}
 function kapost_byline_admin_init()
 {
 	$base_url =  WP_PLUGIN_URL."/".KAPOST_BYLINE_DIRNAME;
@@ -7,13 +20,11 @@ function kapost_byline_admin_init()
 	wp_register_style(KAPOST_BYLINE_DEFAULT_SETTINGS_KEY,$base_url.'/modules/settings.css');
 	wp_enqueue_style(KAPOST_BYLINE_DEFAULT_SETTINGS_KEY);
 }
-add_action('admin_menu', 'kapost_byline_settings_menu');
 function kapost_byline_settings_menu() 
 {
 	if(function_exists("add_submenu_page"))
 	    add_submenu_page('options-general.php','Kapost Byline', 'Kapost Byline', 'manage_options', 'kapost_byline_settings', 'kapost_byline_settings_options');
 }
-add_filter('plugin_action_links', 'kapost_byline_page_settings_link', 10, 2);
 function kapost_byline_page_settings_link($links, $file) 
 {
 	if($file == KAPOST_BYLINE_BASENAME) 
@@ -50,8 +61,7 @@ function kapost_byline_settings_form_update($new_instance, $old_instance)
 {
 	if(!is_array($new_instance)) $new_instance = array();
 
-	// FIXME: use default array?!
-	$instance = array('attr_create_user'=>'','custom_type'=>'');
+	$instance = array('attr_create_user'=>'');
 	if($new_instance['attr_create_user'] == 'on')
 		$instance['attr_create_user'] = 'on';
 
@@ -115,4 +125,8 @@ function kapost_byline_settings_options()
 
 	echo '</div>';
 }
+
+add_action('admin_init', 'kapost_byline_admin_init');
+add_action('admin_menu', 'kapost_byline_settings_menu');
+add_filter('plugin_action_links', 'kapost_byline_page_settings_link', 10, 2);
 ?>
