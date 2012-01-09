@@ -17,10 +17,7 @@ function kapost_byline_xmlrpc_newPost($args)
 
 	if(!$wp_xmlrpc_server->login($username, $password))
 		return $wp_xmlrpc_server->error;
-
-	if(!current_user_can('publish_posts'))
-		return new IXR_Error(401, __('Sorry, you are not allowed to publish posts on this site.'));
-
+	
 	return $wp_xmlrpc_server->mw_newPost($args);
 }
 
