@@ -50,7 +50,7 @@ function kapost_byline_protected_custom_fields($custom_fields)
     return $pcf;
 }
 
-function kapost_byline_update_post_data($data, $custom_fields, $blog_id=false)
+function kapost_byline_update_post_data($data, $custom_fields, $blog_id=0)
 {
     // if this is a draft then clear the 'publish date'
     if($data['post_status'] == 'draft')

@@ -1,5 +1,5 @@
 <?php
-function kapost_byline_create_user($custom_fields, $blog_id=false)
+function kapost_byline_create_user($custom_fields, $blog_id=0)
 {
 	if(	empty($custom_fields['kapost_author_email']) ||
 		empty($custom_fields['kapost_author_profile']) ||
@@ -33,14 +33,14 @@ function kapost_byline_create_user($custom_fields, $blog_id=false)
 
 		$uid = wp_insert_user(array(
 			'user_login'=>esc_sql($user_name),
-			'user_pass'=>wp_generate_password(12,false),
+			'user_pass'=>wp_generate_password(12, false),
 			'user_email'=>esc_sql($email),
 			'user_url'=>esc_sql($profile),
 			'display_name'=>esc_sql($author),
 			'role'=>'contributor'
 		));
 	}
-	else if($blog_id && function_exists('is_user_member_of_blog') && !is_user_member_of_blog($uid, $blog_id))
+	else if($blog_id && KAPOST_BYLINE_MU && function_exists('is_user_member_of_blog') && !is_user_member_of_blog($uid, $blog_id))
 	{
 		$uid = false;
 	}

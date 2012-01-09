@@ -14,6 +14,7 @@ define('KAPOST_BYLINE_BASEPATH', dirname(__FILE__));
 define('KAPOST_BYLINE_BASENAME', plugin_basename(__FILE__));
 define('KAPOST_BYLINE_DIRNAME', str_replace(basename(__FILE__), '', plugin_basename(__FILE__)));
 define('KAPOST_BYLINE_DEFAULT_SETTINGS_KEY', 'kapost_byline_settings');
+define('KAPOST_BYLINE_MU', (function_exists('is_multisite') && is_multisite()));
 function kapost_byline_bootstrap($mods)
 {
 	foreach($mods as $mod) 
