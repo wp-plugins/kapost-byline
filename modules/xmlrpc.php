@@ -7,17 +7,6 @@ function kapost_byline_xmlrpc_version()
 function kapost_byline_xmlrpc_newPost($args)
 {
 	global $wp_xmlrpc_server;
-	    
-	$wp_xmlrpc_server->escape($args);
-
-	$blog_id	= intval($args[0]);
-	$username	= $args[1];
-	$password	= $args[2];
-	$data		= $args[3];
-
-	if(!$wp_xmlrpc_server->login($username, $password))
-		return $wp_xmlrpc_server->error;
-	
 	return $wp_xmlrpc_server->mw_newPost($args);
 }
 
