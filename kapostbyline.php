@@ -3,11 +3,11 @@
 	Plugin Name: Kapost Social Publishing Byline
 	Plugin URI: http://www.kapost.com/
 	Description: Kapost Social Publishing Byline
-	Version: 1.0.5
+	Version: 1.0.8
 	Author: Kapost
 	Author URI: http://www.kapost.com
 */
-define('KAPOST_BYLINE_VERSION', '1.0.5');
+define('KAPOST_BYLINE_VERSION', '1.0.8');
 define('KAPOST_BYLINE_WP3', (get_bloginfo('version') >= 3.0));
 define('KAPOST_BYLINE_FILENAME', __FILE__);
 define('KAPOST_BYLINE_BASEPATH', dirname(__FILE__));
@@ -20,5 +20,5 @@ function kapost_byline_bootstrap($mods)
 	foreach($mods as $mod) 
 		require_once(KAPOST_BYLINE_BASEPATH . '/modules/' . $mod);
 }
-kapost_byline_bootstrap(array('install.php', 'settings.php', 'user.php', 'post.php', 'xmlrpc.php'));
+kapost_byline_bootstrap(array('install.php', 'settings.php', 'user.php', 'post.php', 'analytics.php', 'xmlrpc.php'));
 ?>
