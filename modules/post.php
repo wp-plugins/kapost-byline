@@ -84,7 +84,7 @@ function kapost_byline_update_post_meta_data($id, $custom_fields)
 	{
 		// look up the image by URL which is the GUID (too bad there's NO wp_ specific method to do this, oh well!)
 		global $wpdb;
-		$thumbnail = $wpdb->get_row($wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE post_type = 'attachment' AND guid = %s", $custom_fields['kapost_featured_image']));
+		$thumbnail = $wpdb->get_row($wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE post_type = 'attachment' AND guid = %s LIMIT 1", $custom_fields['kapost_featured_image']));
 
 		// if the image was found, set it as the featured image for the current post
 		if(!empty($thumbnail))
@@ -95,6 +95,27 @@ function kapost_byline_update_post_meta_data($id, $custom_fields)
 		}
 	}
 
+	// store our protected custom field required by our analytics
+	if(isset($custom_fields['_kapost_analytics_url']))
+	{
+		delete_post_meta($id, '_kapost_analytics');
+
+		// join them into one for performance and speed
+		$kapost_analytics = array();
+		foreach($custom_fields as $k => $v)
+		{
+			// starts with?
+			if(strpos($k, '_kapost_analytics_') === 0)
+			{
+				$kk = str_replace('_kapost_analytics_', '', $k);
+				$kapost_analytics[$kk] = sanitize_text_field($v);
+			}
+		}
+
+		add_post_meta($id, '_kapost_analytics', $kapost_analytics);
+	}
+
+	// store other implicitly 'allowed' protected custom fields
 	if(isset($custom_fields['_kapost_protected']))
 	{
 		foreach(kapost_byline_protected_custom_fields($custom_fields) as $k => $v)
@@ -129,10 +150,11 @@ function kapost_byline_on_insert_post_data($data, $postarr)
 		return $data;
 
 	$message = $xmlrpc_server->message;
-	$custom_fields = kapost_byline_custom_fields($message->params[3]['custom_fields']);
-	$blog_id = intval($message->params[0]);
+	$args = $message->params; // create a copy
+	$xmlrpc_server->escape($args);
 
-	return kapost_byline_update_post_data($data, $custom_fields, $blog_id);
+	$custom_fields = kapost_byline_custom_fields($args[3]['custom_fields']);
+	return kapost_byline_update_post_data($data, $custom_fields, intval($args[0]));
 }
 
 function kapost_byline_on_insert_post($id)
@@ -142,8 +164,10 @@ function kapost_byline_on_insert_post($id)
 		return false;
 
 	$message = $xmlrpc_server->message;
-	$custom_fields = kapost_byline_custom_fields($message->params[3]['custom_fields']);
-	
+	$args = $message->params; // create a copy
+	$xmlrpc_server->escape($args);
+
+	$custom_fields = kapost_byline_custom_fields($args[3]['custom_fields']);
 	kapost_byline_update_post_meta_data($id, $custom_fields);
 }
 add_filter('wp_insert_post_data', 'kapost_byline_on_insert_post_data', '999', 2);
