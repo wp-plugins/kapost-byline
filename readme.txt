@@ -3,7 +3,7 @@ Contributors: iamnader, icebreaker
 Tags: social, publishing
 Requires at least: 2.9
 Tested up to: 3.2.1
-Stable tag: 1.0.8
+Stable tag: 1.0.9
 
 This Kapost plug-in is a companion with the newsroom that you can create at Kapost.com.
 
@@ -30,6 +30,9 @@ For more information, visit the [Kapost website](http://www.kapost.com).
 1. Activate the plugin through the 'Plugins' menu in WordPress
 
 == Changelog ==
+= 1.0.9 =
+* added support form in the settings area
+
 = 1.0.8 =
 * avoid double escaping
 
@@ -58,6 +61,9 @@ For more information, visit the [Kapost website](http://www.kapost.com).
 * First version
 
 == Upgrade Notice ==
+= 1.0.9 =
+* added support form in the settings area
+
 = 1.0.8 =
 * avoid double escaping
 

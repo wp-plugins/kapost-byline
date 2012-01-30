@@ -33,3 +33,13 @@ a.kapost-byline-tab.selected
 	font-weight:bold;
 	color:#333333;
 }
+.kapost-byline-support dl dt
+{
+	width:150px;
+	float:left;
+	clear:left;
+}
+.kapost-byline-support dl dd input
+{
+	width:400px;
+} 
