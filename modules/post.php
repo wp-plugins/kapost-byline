@@ -77,6 +77,38 @@ function kapost_byline_update_post_data($data, $custom_fields, $blog_id=0)
     return $data;
 }
 
+function kapost_byline_update_simple_fields($id, $custom_fields)
+{
+	global $wpdb;
+
+	// remove any existing Simple Fields
+	$wpdb->query("DELETE FROM $wpdb->postmeta WHERE post_id = $id AND meta_key LIKE '_simple_fields_fieldGroupID_%'");
+
+	// store Simple Fields specific protected custom fields
+	foreach($custom_fields as $k => $v) 
+	{   
+		// keys must be in this format: _simple_fields_fieldGroupID_1_fieldID_1_numInSet_0
+		if(preg_match('/^_simple_fields_fieldGroupID_[0-9]+_fieldID_[0-9]+_numInSet_[0-9]+$/', $k))
+		{   
+			$value = sanitize_text_field($custom_fields[$k]);
+
+			// is this an image?
+			if(preg_match('/^https?:\/\/.*?\/.*?\.(jpg|png|jpeg|bmp|gif)$/', $value))
+			{ 
+				$image = $wpdb->get_row($wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE post_type = 'attachment' AND guid = %s LIMIT 1", $value));
+
+				// if the image was found, set the ID
+				if(!empty($image) && is_object($image))
+					add_post_meta($id, $k, $image->ID);
+			}   
+			else // default is text field/area
+			{   
+				add_post_meta($id, $k, $value);
+			}   
+		}   
+	}
+}
+
 function kapost_byline_update_post_meta_data($id, $custom_fields)
 {
 	// set our featured image
@@ -121,10 +153,15 @@ function kapost_byline_update_post_meta_data($id, $custom_fields)
 		foreach(kapost_byline_protected_custom_fields($custom_fields) as $k => $v)
 		{
 			delete_post_meta($id, $k);
-			if(isset($v) && !empty($v))
-				add_post_meta($id, $k, $v);
-		}	
+			$value = sanitize_text_field($v);
+			if(!empty($value))
+				add_post_meta($id, $k, $value);
+		}
 	}
+
+	// check and store protected custom fields used by Simple Fields
+	if(defined('EASY_FIELDS_VERSION'))
+		kapost_byline_update_simple_fields($id, $custom_fields);
 }
 
 function kapost_byline_get_xmlrpc_server()

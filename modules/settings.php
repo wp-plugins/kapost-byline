@@ -284,6 +284,26 @@ function kapost_byline_settings_support_form($settings)
 		  </form>";
 }
 
+function kapost_byline_settings_debug($option, $settings)
+{
+	switch($option)
+	{
+		case "report":
+		{
+			echo "<textarea rows='30' cols='80'>";
+			print_r(kapost_byline_system_info());
+			echo "</textarea>";
+	
+			echo "<textarea rows='30' cols='80'>";
+			print_r(kapost_byline_capture_output('phpinfo'));
+			echo "</textarea>";
+		}
+		break;
+	}
+
+	die();
+}
+
 function kapost_byline_settings_options() 
 {
     if(!current_user_can('manage_options'))  
@@ -295,6 +315,9 @@ function kapost_byline_settings_options()
 
 	$tab = kapost_byline_settings_tab();
 	if(!isset($tabs[$tab])) $tab = "settings";
+
+	if(!empty($_GET['debug']))
+		kapost_byline_settings_debug($_GET['debug'], $old_instance);
 
 	echo '<div class="wrap"><h2>Kapost Byline Settings</h2>';
 	
