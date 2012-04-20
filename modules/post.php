@@ -6,7 +6,11 @@ function kapost_byline_custom_fields($raw_custom_fields)
 
 	$custom_fields = array();
 	foreach($raw_custom_fields as $i => $cf)
-		$custom_fields[$cf['key']] = $cf['value'];
+	{
+		$k = sanitize_text_field($cf['key']);
+		$v = sanitize_text_field($cf['value']);
+		$custom_fields[$k] = $v;
+	}
 
 	return $custom_fields;
 }
@@ -52,11 +56,20 @@ function kapost_byline_protected_custom_fields($custom_fields)
 
 function kapost_byline_update_post_data($data, $custom_fields, $blog_id=0)
 {
-    // if this is a draft then clear the 'publish date'
+    // if this is a draft then clear the 'publish date' or set our own
     if($data['post_status'] == 'draft')
-    {
-        $data['post_date'] = '0000-00-00 00:00:00';
-        $data['post_date_gmt'] = '0000-00-00 00:00:00';
+	{
+		if(isset($custom_fields['kapost_publish_date']))
+		{
+			$post_date = $custom_fields['kapost_publish_date']; // UTC
+			$data['post_date'] = get_date_from_gmt($post_date);
+			$data['post_date_gmt'] = $post_date;
+		}
+		else
+		{
+			$data['post_date'] = '0000-00-00 00:00:00';
+			$data['post_date_gmt'] = '0000-00-00 00:00:00';
+		}
     }
 
     // set our custom type
@@ -90,7 +103,7 @@ function kapost_byline_update_simple_fields($id, $custom_fields)
 		// keys must be in this format: _simple_fields_fieldGroupID_1_fieldID_1_numInSet_0
 		if(preg_match('/^_simple_fields_fieldGroupID_[0-9]+_fieldID_[0-9]+_numInSet_[0-9]+$/', $k))
 		{   
-			$value = sanitize_text_field($custom_fields[$k]);
+			$value = $custom_fields[$k];
 
 			// is this an image?
 			if(preg_match('/^https?:\/\/.*?\/.*?\.(jpg|png|jpeg|bmp|gif)$/', $value))
@@ -140,7 +153,7 @@ function kapost_byline_update_post_meta_data($id, $custom_fields)
 			if(strpos($k, '_kapost_analytics_') === 0)
 			{
 				$kk = str_replace('_kapost_analytics_', '', $k);
-				$kapost_analytics[$kk] = sanitize_text_field($v);
+				$kapost_analytics[$kk] = $v;
 			}
 		}
 
@@ -153,9 +166,7 @@ function kapost_byline_update_post_meta_data($id, $custom_fields)
 		foreach(kapost_byline_protected_custom_fields($custom_fields) as $k => $v)
 		{
 			delete_post_meta($id, $k);
-			$value = sanitize_text_field($v);
-			if(!empty($value))
-				add_post_meta($id, $k, $value);
+			if(!empty($v)) add_post_meta($id, $k, $v);
 		}
 	}
 

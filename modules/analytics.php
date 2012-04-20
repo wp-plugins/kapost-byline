@@ -14,17 +14,7 @@ function kapost_byline_get_analytics_code($id)
 
 	$code = "
 <!-- BEGIN KAPOST ANALYTICS CODE -->
-<span id='kapostanalytics_" . esc_attr($post_id) . "'></span>
-<script>
-<!--
-var _kapost_data = _kapost_data || [];
-_kapost_data.push([1, '" . esc_js($post_id) . "', '" . esc_js($author_id) . "', '" . esc_js($newsroom_id) . "', escape('" . esc_js($categories) . "')]);
-(function(){
-var ka = document.createElement('script'); ka.async=true; ka.id='kp_tracker'; ka.src='" . esc_url($url) . "/javascripts/tracker.js';
-var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ka, s);
-})();
--->
-</script>
+<span id='kapostanalytics' pid='" . esc_attr($post_id) . "' aid='" . esc_attr($author_id) . "' nid='" . esc_attr($newsroom_id) . "' cats='" . esc_attr($categories) . "' url='" . $url . "'></span>
 <!-- END KAPOST ANALYTICS CODE -->
 ";
 
@@ -41,6 +31,23 @@ function kapost_byline_the_content($content)
 	return $content;
 }
 
+function kapost_inject_footer_script() {
+  echo '<script><!--
+var _kapost_data = _kapost_data || [];
+m = document.getElementById("kapostanalytics");
+_kapost_data.push([1, m.getAttribute("pid"), m.getAttribute("aid"), m.getAttribute("nid"), m.getAttribute("cats")]);
+(function() {
+var ka = document.createElement(\'script\'); 
+ka.async=true; 
+ka.id="kp_tracker"; 
+ka.src=m.getAttribute("url") + "/javascripts/tracker.js";
+var s = document.getElementsByTagName(\'script\')[0]; 
+s.parentNode.insertBefore(ka, s);
+})();
+//--></script>';
+}
+
 add_filter('the_content', 'kapost_byline_the_content');
 add_filter('the_content_feed', 'kapost_byline_the_content');
+add_action('wp_footer', 'kapost_inject_footer_script');
 ?>
