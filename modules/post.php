@@ -173,6 +173,17 @@ function kapost_byline_update_post_meta_data($id, $custom_fields)
 	// check and store protected custom fields used by Simple Fields
 	if(defined('EASY_FIELDS_VERSION'))
 		kapost_byline_update_simple_fields($id, $custom_fields);
+
+	// match custom fields to custom taxonomies if appropriate
+	$taxonomies = array_keys(get_taxonomies(array('_builtin' => false), 'names'));
+	if(!empty($taxonomies))
+	{
+		foreach($custom_fields as $k => $v)
+		{                                                                                                                         
+			if(in_array($k, $taxonomies))
+				wp_set_object_terms($id, explode(',', $v), $k);
+		}
+	}
 }
 
 function kapost_byline_get_xmlrpc_server()
@@ -184,7 +195,7 @@ function kapost_byline_get_xmlrpc_server()
 	if(empty($wp_xmlrpc_server))
 		return false;
 
-	$methods = array('metaWeblog.newPost', 'metaWeblog.editPost', 'kapost.newPost');
+	$methods = array('metaWeblog.newPost', 'metaWeblog.editPost', 'kapost.newPost', 'kapost.editPost');
 	if(!in_array($wp_xmlrpc_server->message->methodName, $methods))
 		return false;
 
