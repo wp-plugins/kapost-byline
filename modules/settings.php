@@ -18,9 +18,7 @@ function kapost_byline_settings_update($settings)
 
 function kapost_byline_admin_init()
 {
-	$base_url =  WP_PLUGIN_URL."/".KAPOST_BYLINE_DIRNAME;
-
-	wp_register_style(KAPOST_BYLINE_DEFAULT_SETTINGS_KEY,$base_url.'/modules/settings.css');
+	wp_register_style(KAPOST_BYLINE_DEFAULT_SETTINGS_KEY, plugins_url('settings.css', __FILE__));
 	wp_enqueue_style(KAPOST_BYLINE_DEFAULT_SETTINGS_KEY);
 }
 
