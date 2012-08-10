@@ -3,7 +3,7 @@ Contributors: iamnader, icebreaker, worldnamer
 Tags: social, publishing
 Requires at least: 2.9
 Tested up to: 3.2.1
-Stable tag: 1.2.0
+Stable tag: 1.7.0
 
 This Kapost plug-in is a companion with the newsroom that you can create at Kapost.com.
 
@@ -30,6 +30,21 @@ For more information, visit the [Kapost website](http://www.kapost.com).
 1. Activate the plugin through the 'Plugins' menu in WordPress
 
 == Changelog ==
+= 1.7.0 =
+* added new analytics
+
+= 1.6.0 =
+* added kapost.editPost
+
+= 1.5.0 =
+* added support to match custom fields to custom taxonomies
+
+= 1.4.0 =
+* added kapost.getPermalink
+
+= 1.3.0 =
+* added image metadata support
+
 = 1.2.0 =
 * reworked asynchronous calls to analytics to reduce plugin interference and remove need for tags in the body
 
@@ -70,6 +85,21 @@ For more information, visit the [Kapost website](http://www.kapost.com).
 * First version
 
 == Upgrade Notice ==
+= 1.7.0 =
+* added new analytics
+
+= 1.6.0 =
+* added kapost.editPost
+
+= 1.5.0 =
+* added support to match custom fields to custom taxonomies
+
+= 1.4.0 =
+* added kapost.getPermalink
+
+= 1.3.0 =
+* added image metadata support
+
 = 1.2.0 =
 * reworked asynchronous calls to analytics to reduce plugin interference and remove need for tags in the body
 
