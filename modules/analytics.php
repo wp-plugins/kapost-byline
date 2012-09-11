@@ -24,7 +24,7 @@ function kapost_byline_inject_analytics()
 {
 	global $post;
 
-	if(is_home() || is_front_page())
+	if(!is_single())
 		return;
 
 	if(!isset($post) || ($post->post_status != 'publish') || (strpos($post->post_content, '<!-- END KAPOST ANALYTICS CODE -->') !== FALSE))
