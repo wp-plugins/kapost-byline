@@ -10,6 +10,11 @@ function kapost_byline_create_user($custom_fields, $blog_id=0)
 	$profile= $custom_fields['kapost_author_profile'];
 	$email	= $custom_fields['kapost_author_email'];
 
+	if(isset($custom_fields['kapost_author_bio']))
+		$bio = $custom_fields['kapost_author_bio'];
+	else
+		$bio = '';
+
 	$settings = kapost_byline_settings();
 	if($settings['attr_create_user'] != 'on')
 		return false;
@@ -32,12 +37,13 @@ function kapost_byline_create_user($custom_fields, $blog_id=0)
 		}
 
 		$uid = wp_insert_user(array(
-			'user_login'=>esc_sql($user_name),
-			'user_pass'=>wp_generate_password(12, false),
-			'user_email'=>esc_sql($email),
-			'user_url'=>esc_sql($profile),
-			'display_name'=>esc_sql($author),
-			'role'=>'contributor'
+			'user_login'	=> esc_sql($user_name),
+			'user_pass'		=> wp_generate_password(12, false),
+			'user_email'	=> esc_sql($email),
+			'user_url'		=> esc_sql($profile),
+			'display_name'	=> esc_sql($author),
+			'role'			=> 'contributor',
+			'description'	=> esc_sql($bio)
 		));
 	}
 	else if($blog_id && KAPOST_BYLINE_MU && function_exists('is_user_member_of_blog') && !is_user_member_of_blog($uid, $blog_id))
