@@ -40,6 +40,10 @@ function kapost_byline_xmlrpc_editPost($args)
 	if(in_array($post->post_type, array('post', 'page')))
 		return $wp_xmlrpc_server->mw_editPost($args);
 
+	// to avoid double escaping the content structure in wp_editPost
+	// point data to the original structure
+	$data = $args[3];
+
 	$content_struct = array();
 	$content_struct['post_type'] = $post->post_type; 
 	$content_struct['post_status'] = $publish ? 'publish' : 'draft';
@@ -62,7 +66,7 @@ function kapost_byline_xmlrpc_editPost($args)
 	if(isset($data['categories']) && !empty($data['categories']) && is_array($data['categories']))
 		$content_struct['terms_names']['category'] = $data['categories'];
 
-	return $wp_xmlrpc_server->wp_editPost(array($blog_id, $username, $password, $post_id, $content_struct));
+	return $wp_xmlrpc_server->wp_editPost(array($blog_id, $args[1], $args[2], $args[0], $content_struct));
 }
 
 function kapost_byline_xmlrpc_newMediaObject($args)
