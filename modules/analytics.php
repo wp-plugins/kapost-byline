@@ -20,12 +20,21 @@ function kapost_byline_verify_analytics_url($url)
 
 	return false;
 }
+function kapost_byline_get_post()
+{
+	global $wp_query, $post;
+
+	if(isset($wp_query) && !empty($wp_query->post))
+		return $wp_query->post;
+
+	return $post;
+}
 function kapost_byline_inject_analytics() 
 {
-	global $post;
-
 	if(!is_single())
 		return;
+
+	$post = kapost_byline_get_post();
 
 	if(!isset($post) || ($post->post_status != 'publish') || (strpos($post->post_content, '<!-- END KAPOST ANALYTICS CODE -->') !== FALSE))
 		return;
