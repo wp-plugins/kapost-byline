@@ -39,17 +39,26 @@ function kapost_byline_page_settings_link($links, $file)
 	return $links;
 }
 
+function kapost_byline_settings_checkbox($instance, $name, $label)
+{
+	$state = ($instance[$name] == 'on') ?' checked="checked"' : '';
+	return '<blockquote><input type="checkbox" name="' . KAPOST_BYLINE_DEFAULT_SETTINGS_KEY . '[' . $name  . ']" ' . $state . '/> ' . $label . '</blockquote>';
+}
+
 function kapost_byline_settings_form($instance)
 {
-	$attr_checked = ($instance['attr_create_user'] == 'on') ?' checked="checked"':'';
-	$attr_options = '<h3>Attribution Options</h3>
-						<blockquote>
-							<input type="checkbox" name="'.KAPOST_BYLINE_DEFAULT_SETTINGS_KEY.'[attr_create_user]"'.$attr_checked.'/> Create a new WordPress user for each promoted user unless their account (based on email) already exists. 
-							</blockquote>';
+	$attr_options = '<h3>Attribution Options</h3>';
+	$attr_options .= kapost_byline_settings_checkbox($instance, 'attr_create_user', 'Create a new WordPress user for each promoted user unless their account (based on email) already exists.');
+	$attr_options .= '<blockquote>';
+	$attr_options .= kapost_byline_settings_checkbox($instance, 'attr_update_user_meta', 'Update Wordpress user\'s metadata based on promoted user.');
+	$attr_options .= kapost_byline_settings_checkbox($instance, 'attr_update_user_photo', 'Update Wordpress user\'s <b>*</b>profile photo (avatar) based on promoted user.');
+	$attr_options .= '<blockquote><b>* this feature requires the <a href="http://wordpress.org/plugins/user-photo/">user-photo</a> plugin</b></blockquote>';
+	$attr_options .= '</blockquote>';
 
 	echo '
 		<form action="" method="post" autocomplete="off" id="options_form">
 		'.$attr_options.'
+		<blockquote>
 			<p class="submit">
 				<input type="submit" value="Update Settings" id="submit" class="button-primary" name="submit"/>
 			</p>
@@ -66,9 +75,15 @@ function kapost_byline_settings_form_update($new_instance, $old_instance)
 {
 	if(!is_array($new_instance)) $new_instance = array();
 
-	$instance = array('attr_create_user'=>'');
-	if($new_instance['attr_create_user'] == 'on')
-		$instance['attr_create_user'] = 'on';
+	$instance = array('attr_create_user' => '', 'attr_update_user_meta' => '', 'attr_update_user_photo' => '');
+
+	foreach($instance as $k => $v)
+	{
+		if($new_instance[$k] == 'on')
+		{
+			$instance[$k] = 'on';
+		}
+	}
 
 	kapost_byline_settings_update($instance);
 	kapost_byline_message("Settings successfully updated.");
