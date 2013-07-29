@@ -6,7 +6,7 @@ function kapost_byline_settings_url()
 
 function kapost_byline_settings()
 {
-	$defaults = array('attr_create_user'=>'on');
+	$defaults = array('attr_create_user' => 'on', 'attr_update_user_bio' => 'on');
 	return wp_parse_args((array) get_option(KAPOST_BYLINE_DEFAULT_SETTINGS_KEY), $defaults);
 }
 
@@ -50,10 +50,14 @@ function kapost_byline_settings_form($instance)
 	$attr_options = '<h3>Attribution Options</h3>';
 	$attr_options .= kapost_byline_settings_checkbox($instance, 'attr_create_user', 'Create a new WordPress user for each promoted user unless their account (based on email) already exists.');
 	$attr_options .= '<blockquote>';
-	$attr_options .= kapost_byline_settings_checkbox($instance, 'attr_update_user_meta', 'Update Wordpress user\'s metadata based on promoted user.');
-	$attr_options .= kapost_byline_settings_checkbox($instance, 'attr_update_user_photo', 'Update Wordpress user\'s <b>*</b>profile photo (avatar) based on promoted user.');
-	$attr_options .= '<blockquote><b>* this feature requires the <a href="http://wordpress.org/plugins/user-photo/">user-photo</a> plugin</b></blockquote>';
+	$attr_options .= kapost_byline_settings_checkbox($instance, 'attr_update_user_bio', 'Update new Wordpress user\'s bio based on promoted user.');
+	$attr_options .= kapost_byline_settings_checkbox($instance, 'attr_update_user_meta', 'Update new Wordpress user\'s metadata based on promoted user.');
+	$attr_options .= kapost_byline_settings_checkbox($instance, 'attr_update_user_photo', 'Update new Wordpress user\'s <b>*</b>profile photo (avatar) based on promoted user.');
 	$attr_options .= '</blockquote>';
+	$attr_options .= kapost_byline_settings_checkbox($instance, 'attr_update_existing_user_bio', 'Update existing Wordpress user\'s bio based on promoted user.');
+	$attr_options .= kapost_byline_settings_checkbox($instance, 'attr_update_existing_user_meta', 'Update existing Wordpress user\'s metadata based on promoted user.');
+	$attr_options .= kapost_byline_settings_checkbox($instance, 'attr_update_existing_user_photo', 'Update existing Wordpress user\'s <b>*</b>profile photo (avatar) based on promoted user.');
+	$attr_options .= '<blockquote><b>* this feature requires the <a href="http://wordpress.org/plugins/user-photo/">user-photo</a> plugin</b></blockquote>';
 
 	echo '
 		<form action="" method="post" autocomplete="off" id="options_form">
@@ -75,15 +79,19 @@ function kapost_byline_settings_form_update($new_instance, $old_instance)
 {
 	if(!is_array($new_instance)) $new_instance = array();
 
-	$instance = array('attr_create_user' => '', 'attr_update_user_meta' => '', 'attr_update_user_photo' => '');
+	$instance = array(
+		'attr_create_user'					=> '', 
+		'attr_update_user_meta'				=> '', 
+		'attr_update_user_photo'			=> '',
+		'attr_update_user_bio'				=> '',
+		'attr_update_existing_user_meta'	=> '', 
+		'attr_update_existing_user_photo'	=> '',
+		'attr_update_existing_user_bio'		=> ''
+	);
 
 	foreach($instance as $k => $v)
-	{
 		if($new_instance[$k] == 'on')
-		{
 			$instance[$k] = 'on';
-		}
-	}
 
 	kapost_byline_settings_update($instance);
 	kapost_byline_message("Settings successfully updated.");

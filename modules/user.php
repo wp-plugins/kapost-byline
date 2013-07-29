@@ -1,5 +1,5 @@
 <?php
-function kapost_byline_update_user_meta($user_id, $user_created, $custom_fields)
+function kapost_byline_update_user_bio($user_id, $custom_fields)
 {
 	$author = $custom_fields['kapost_author'];
 	$profile= $custom_fields['kapost_author_profile'];
@@ -10,7 +10,7 @@ function kapost_byline_update_user_meta($user_id, $user_created, $custom_fields)
 	else
 		$bio = '';
 
-	if($user_created == false)
+	if(!empty($bio))
 	{
 		wp_update_user(array(
 			'ID'			=> $user_id,
@@ -19,7 +19,10 @@ function kapost_byline_update_user_meta($user_id, $user_created, $custom_fields)
 			'description'	=> $bio
 		));
 	}
+}
 
+function kapost_byline_update_user_meta($user_id, $custom_fields)
+{
 	// whitelist the meta fields that an be updated this way
 	$user_meta_fields = array('twitter', 'linkedin', 'google_plus', 'googleplus');
 
@@ -34,7 +37,7 @@ function kapost_byline_update_user_meta($user_id, $user_created, $custom_fields)
 	}
 }
 
-function kapost_byline_update_user_photo($user_id, $user_created, $custom_fields)
+function kapost_byline_update_user_photo($user_id, $custom_fields)
 {
 	$avatar_url = $custom_fields['kapost_author_avatar'];
 	if(empty($avatar_url))
@@ -188,12 +191,10 @@ function kapost_byline_create_user($custom_fields, $blog_id=0)
 		$bio = '';
 
 	$settings = kapost_byline_settings();
-	if($settings['attr_create_user'] != 'on')
-		return false;
 
 	require_once(ABSPATH . WPINC . '/registration.php');
 	$uid = email_exists($email);
-	if(!$uid)
+	if(!$uid && $settings['attr_create_user'] == 'on')
 	{
 		$c = 0;
 		$user_name = $user_login = str_replace(" ","",strtolower($author));
@@ -208,33 +209,43 @@ function kapost_byline_create_user($custom_fields, $blog_id=0)
 			if(++$c == 1000) return false;
 		}
 
-		$uid = wp_insert_user(array(
+		$new_user_data = array(
 			'user_login'	=> esc_sql($user_name),
 			'user_pass'		=> wp_generate_password(12, false),
 			'user_email'	=> esc_sql($email),
 			'user_url'		=> esc_sql($profile),
 			'display_name'	=> esc_sql($author),
-			'role'			=> 'contributor',
-			'description'	=> esc_sql($bio)
-		));
+			'role'			=> 'contributor'
+		);
 
+		if(!empty($bio) && $settings['attr_update_user_bio'] == 'on')
+			$new_user_data['description'] = $bio;
+
+		$uid = wp_insert_user($new_user_data);
 		$user_created = true;
 	}
-	else if($blog_id && KAPOST_BYLINE_MU && function_exists('is_user_member_of_blog') && !is_user_member_of_blog($uid, $blog_id))
+	else if($uid && $blog_id && KAPOST_BYLINE_MU && function_exists('is_user_member_of_blog') && !is_user_member_of_blog($uid, $blog_id))
 	{
 		$uid = false;
 	}
 
 	global $user_updated;
-	if($uid && !isset($user_updated))
+	if($uid && !isset($user_updated) && current_user_can('edit_user', $uid))
 	{
 		$user_updated = true;
 
-		if($settings['attr_update_user_meta'] == 'on')
-			kapost_byline_update_user_meta($uid, $user_created, $custom_fields);
+		$k = 'attr_update_existing_';
+		if($user_created)
+			$k = 'attr_update_';
 
-		if($settings['attr_update_user_photo'] == 'on')
-			kapost_byline_update_user_photo($uid, $user_created, $custom_fields);
+		if(!$user_created && $settings[$k . 'user_bio'] == 'on')
+			kapost_byline_update_user_bio($uid, $custom_fields);
+
+		if($settings[$k . 'user_meta'] == 'on')
+			kapost_byline_update_user_meta($uid, $custom_fields);
+
+		if($settings[$k . 'user_photo'] == 'on')
+			kapost_byline_update_user_photo($uid, $custom_fields);
 	}
 	
 	return ($uid) ? $uid : false;
