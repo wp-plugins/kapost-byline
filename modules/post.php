@@ -90,6 +90,12 @@ function kapost_byline_update_post_data($data, $custom_fields, $blog_id=0)
     return $data;
 }
 
+function kapost_byline_is_simple_field($k)
+{
+	// keys must be in this format: _simple_fields_fieldGroupID_1_fieldID_1_numInSet_0
+	return preg_match('/^_simple_fields_fieldGroupID_[0-9]+_fieldID_[0-9]+_numInSet_[0-9]+$/', $k);
+}
+
 function kapost_byline_update_simple_fields($id, $custom_fields)
 {
 	global $wpdb;
@@ -101,12 +107,13 @@ function kapost_byline_update_simple_fields($id, $custom_fields)
 	foreach($custom_fields as $k => $v) 
 	{   
 		// keys must be in this format: _simple_fields_fieldGroupID_1_fieldID_1_numInSet_0
-		if(preg_match('/^_simple_fields_fieldGroupID_[0-9]+_fieldID_[0-9]+_numInSet_[0-9]+$/', $k))
+		if(kapost_byline_is_simple_field($k))
 		{   
 			$value = $custom_fields[$k];
 
 			// is this an image?
-			if(preg_match('/^https?:\/\/.*?\/.*?\.(jpg|png|jpeg|bmp|gif)$/', $value))
+			$matches = kapost_byline_validate_image_url($value);
+			if(!empty($matches))
 			{ 
 				$image = $wpdb->get_row($wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE post_type = 'attachment' AND guid = %s LIMIT 1", $value));
 
@@ -119,6 +126,33 @@ function kapost_byline_update_simple_fields($id, $custom_fields)
 				add_post_meta($id, $k, $value);
 			}   
 		}   
+	}
+}
+
+function kapost_byline_update_post_image_fields($id, $custom_fields)
+{
+	global $wpdb;
+
+	foreach($custom_fields as $k => $v) 
+	{   
+		// skip simple fields because those are being handled differently
+		if(kapost_byline_is_simple_field($k))
+			continue;
+
+		$value = $custom_fields[$k];
+
+		// is this an image?
+		$matches = kapost_byline_validate_image_url($value);
+		if(empty($matches))
+			continue;
+
+		// find the image based on the URL
+		$image = $wpdb->get_row($wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE post_type = 'attachment' AND guid = %s LIMIT 1", $value));
+		if(empty($image) || !is_object($image))
+			continue;
+
+		delete_post_meta($id, $k);
+		add_post_meta($id, $k, $image->ID);
 	}
 }
 
@@ -139,6 +173,11 @@ function kapost_byline_update_post_meta_data($id, $custom_fields)
 			update_post_meta($id, '_thumbnail_id', $thumbnail->ID);
 		}
 	}
+
+	// store our image custom fields as IDs instead of URLs
+	$settings = kapost_byline_settings();
+	if($settings['image_custom_fields'] == 'on')
+		kapost_byline_update_post_image_fields($id, $custom_fields);
 
 	// store our protected custom field required by our analytics
 	if(isset($custom_fields['_kapost_analytics_url']))
