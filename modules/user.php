@@ -48,9 +48,8 @@ function kapost_byline_update_user_photo($user_id, $custom_fields)
 		return false;
 
 	// verify that the avatar is coming from Kapost and wasn't hijacked
-	$matches = array();
-	$src = '/https:\/\/kapost-files-(dev|prod|demo|staging)\.s3\.amazonaws\.com\/uploads\/user\/avatar\/.*?\/(.*?)\.(jpg|png)/';
-	if(!preg_match($src, $avatar_url, $matches))
+	$matches = kapost_byline_validate_aws_image_url($avatar);
+	if(empty($matches))
 		return false;
 
 	$filename = $matches[2] . "." . $matches[3];
