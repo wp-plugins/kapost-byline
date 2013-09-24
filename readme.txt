@@ -5,24 +5,14 @@ Requires at least: 2.9
 Tested up to: 3.4.2
 Stable tag: 1.7.7
 
-This Kapost plug-in is a companion with the newsroom that you can create at Kapost.com.
+This Kapost plug-in is a companion with the instance that you can create at Kapost.com.
 
 == Description ==
 This plugin allows posts published from Kapost.com into your WordPress blog to keep the same username for the author. If the author on the published post doesn't exist in WordPress (check done by looking at email address), this plugin will create a new user in WordPress.
 
-In addition, this plugin allows Kapost newsrooms to publish to a Custom Type. 
+In addition, this plugin allows Kapost instances to publish to a Custom Type. 
 
-For this to work, you should name a Custom Field (on Kapost.com) as "kapost_custom_type". 
-
-The display name can be anything but the field name has to be what's listed above. 
-
-Also, on the Kapost.com side, in the dropdown list, then put the name exactly of the Custom Type. 
-
-The way you can tell what it is, go to post type, and the page in WP will reveal what the exact name is. 
-
-The name in the Custom Field has to be exact name.
-
-For more information, visit the [Kapost website](http://www.kapost.com).
+For more information, visit the [Kapost](http://www.kapost.com) and [Kapost Help](http://help.kapost.com) websites.
 
 == Installation ==
 
