@@ -24,7 +24,7 @@ function kapost_byline_update_user_bio($user_id, $custom_fields)
 function kapost_byline_update_user_meta($user_id, $custom_fields)
 {
 	// whitelist the meta fields that an be updated this way
-	$user_meta_fields = array('twitter', 'linkedin', 'google_plus', 'googleplus');
+	$user_meta_fields = array('twitter', 'linkedin', 'google_plus', 'googleplus', 'facebook');
 
 	foreach($user_meta_fields as $name)
 	{
