@@ -209,6 +209,28 @@ function kapost_byline_update_post_meta_data($id, $custom_fields)
 		}
 	}
 
+	$fields_processed = array();
+	foreach($custom_fields as $k => $v)
+	{
+		if (strpos($k, "_kapost_merged_") === 0) // If the key starts with _kapost_merged_
+		{
+			$real_key = substr($k, 15); // Grab all the characters after the prefix
+			
+			delete_post_meta($id, $real_key);
+			foreach(explode('|||', $v) as $exploded_field)  // Separate the value by ||| delimiters
+			{
+				add_post_meta($id, $real_key, $exploded_field); // Add a custom field with the same name for each value
+			}
+
+			array_push($fields_processed, $k);
+		}
+	}
+	foreach($fields_processed as $field_processed) 
+	{
+		delete_post_meta($id, $field_processed); // Clean up by removing the merged key's custom field
+		unset($custom_fields[$field_processed]); // Clean up by removing that key from the array
+	}
+
 	// check and store protected custom fields used by Simple Fields
 	if(defined('EASY_FIELDS_VERSION'))
 		kapost_byline_update_simple_fields($id, $custom_fields);
