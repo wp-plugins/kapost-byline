@@ -143,31 +143,11 @@ function kapost_byline_xmlrpc_getPermalink($args)
 	if(!is_object($post) || !isset($post->ID))
 		return new IXR_Error(401, __('Sorry, you cannot edit this post.'));
 
-	if(!empty($post->post_title) && in_array($post->post_status, array('draft', 'pending', 'auto-draft')))
-	{
-		$sample_post = clone $post;
-		$sample_post->filter = 'sample';
-		$sample_post->post_status = 'publish';
+	list($permalink, $post_name) = get_sample_permalink($post->ID);
+	$permalink = str_replace(array('%postname%', '%pagename%'), $post_name, $permalink);
 
-		if(empty($sample_post->post_date) || $sample_post->post_date == '0000-00-00 00:00:00')
-		{
-			$sample_post->post_date = current_time('mysql');
-			$sample_post->post_date_gmt = current_time('mysql', 1);
-		}
-
-		if(empty($sample_post->post_name))
-		{
-			$sample_post->post_name = wp_unique_post_slug(sanitize_title($sample_post->post_title), 
-														  $sample_post->ID, 
-														  $sample_post->post_status, 
-														  $sample_post->post_type, 
-														  $sample_post->post_parent);
-		}
-
-		$sample_permalink = get_permalink($sample_post);
-		if(strpos($sample_permalink, "%") === false) # make sure it doesn't contain %day%, etc.
-			return $sample_permalink;
-	}
+	if(strpos($permalink, "%") === false) # make sure it doesn't contain %day%, etc.
+			return $permalink;
 
 	return get_permalink($post);
 }
