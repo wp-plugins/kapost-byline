@@ -62,6 +62,10 @@ function kapost_byline_settings_form($instance)
 	$attr_options .= '<blockquote>';
 	$attr_options .= kapost_byline_settings_checkbox($instance, 'image_custom_fields', 'Image Custom fields');
 	$attr_options .= '</blockquote>';
+	$attr_options .= '<h3>Preview Options</h3>';
+	$attr_options .= '<blockquote>';
+	$attr_options .= kapost_byline_settings_checkbox($instance, 'preview', 'Turn Preview On/Off');
+	$attr_options .= '</blockquote>';
 
 	echo '
 		<form action="" method="post" autocomplete="off" id="options_form">
@@ -91,7 +95,8 @@ function kapost_byline_settings_form_update($new_instance, $old_instance)
 		'attr_update_existing_user_meta'	=> '', 
 		'attr_update_existing_user_photo'	=> '',
 		'attr_update_existing_user_bio'		=> '',
-		'image_custom_fields'				=> ''
+		'image_custom_fields'				=> '',
+		'preview'							=> ''
 	);
 
 	foreach($instance as $k => $v)

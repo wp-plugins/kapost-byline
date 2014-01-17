@@ -80,6 +80,10 @@ function kapost_byline_update_post_data($data, $custom_fields, $blog_id=0)
             $data['post_type'] = $custom_type;
     }
 
+	// exit early in preview mode because we don't want to create the user just yet
+	if(isset($GLOBALS['KAPOST_BYLINE_PREVIEW']))
+		return $data;
+
     // create user if necessary
     $uid = kapost_byline_create_user($custom_fields, $blog_id);
 
@@ -256,7 +260,7 @@ function kapost_byline_get_xmlrpc_server()
 	if(empty($wp_xmlrpc_server))
 		return false;
 
-	$methods = array('metaWeblog.newPost', 'metaWeblog.editPost', 'kapost.newPost', 'kapost.editPost');
+	$methods = array('metaWeblog.newPost', 'metaWeblog.editPost', 'kapost.newPost', 'kapost.editPost', 'kapost.getPreview');
 	if(!in_array($wp_xmlrpc_server->message->methodName, $methods))
 		return false;
 
