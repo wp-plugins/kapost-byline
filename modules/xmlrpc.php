@@ -143,6 +143,16 @@ function kapost_byline_xmlrpc_getPermalink($args)
 	if(!is_object($post) || !isset($post->ID))
 		return new IXR_Error(401, __('Sorry, you cannot edit this post.'));
 
+	// play nice with the utterly broken No Category Parents plugin :) (sigh)
+	if(function_exists('myfilter_category') || function_exists('my_insert_rewrite_rules'))
+	{
+		remove_filter('pre_post_link'       ,'filter_category');
+		remove_filter('user_trailingslashit','myfilter_category');
+		remove_filter('category_link'       ,'filter_category_link');
+		remove_filter('rewrite_rules_array' ,'my_insert_rewrite_rules');
+		remove_filter('query_vars'          ,'my_insert_query_vars');
+	}
+
 	list($permalink, $post_name) = get_sample_permalink($post->ID);
 	$permalink = str_replace(array('%postname%', '%pagename%'), $post_name, $permalink);
 
