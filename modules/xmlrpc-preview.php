@@ -24,7 +24,7 @@ function kapost_byline_is_preview_enabled()
 	return (isset($settings['preview']) && $settings['preview'] == 'on');
 }
 
-function kapost_byline_get_preview_html($post_id, $nonce=null)
+function kapost_byline_get_preview_link($post_id, $nonce=null)
 {
 	$preview_params = array('preview' => 'true');
 
@@ -34,8 +34,7 @@ function kapost_byline_get_preview_html($post_id, $nonce=null)
 	$preview_link = set_url_scheme(get_permalink($post_id)); 
 	$preview_link = apply_filters('preview_post_link', add_query_arg($preview_params, $preview_link));
 
-	$html = @file_get_contents($preview_link);
-	return array('html' => ($html ? $html : ''), 'id' => strval($post_id));
+	return array('url' => $preview_link, 'id' => strval($post_id));
 }
 
 function kapost_byline_preview_nonce_action($post_id)
@@ -75,7 +74,7 @@ function kapost_byline_get_preview($args)
 		if(is_object($post) && isset($post->ID))
 		{
 			if($post->post_status == 'publish')
-				return kapost_byline_get_preview_html($post_id);
+				return kapost_byline_get_preview_link($post_id);
 
 			$tmp_args = $args;
 			$tmp_args[0] = $tmp_args[4];
@@ -104,7 +103,7 @@ function kapost_byline_get_preview($args)
 	}
 
 	$nonce = kapost_byline_create_nonce(kapost_byline_preview_nonce_action($post_id));
-	return kapost_byline_get_preview_html($post_id, $nonce);
+	return kapost_byline_get_preview_link($post_id, $nonce);
 }
 
 function kapost_byline_xmlrpc_preview($methods)
@@ -115,8 +114,7 @@ function kapost_byline_xmlrpc_preview($methods)
 
 function kapost_byline_preview_verify_params()
 {
-	if(isset($_GET['kn']) && isset($_GET['p']) &&
-	   isset($_GET['preview']) || !is_admin() && !is_user_logged_in())
+	if(isset($_GET['kn']) && isset($_GET['p']) && isset($_GET['preview']))
 	   return true;
 
 	return false;
@@ -128,7 +126,12 @@ function kapost_byline_preview()
 		return;
 
 	if(kapost_byline_verify_nonce($_GET['kn'], kapost_byline_preview_nonce_action($_GET['p'])))
+	{
 		add_filter('posts_results', 'kapost_byline_preview_filter');
+
+		if(is_user_logged_in())
+			add_filter('show_admin_bar', '__return_false');
+	}
 }
 
 function kapost_byline_preview_filter($posts)
