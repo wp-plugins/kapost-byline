@@ -17,47 +17,53 @@ function kapost_byline_custom_fields($raw_custom_fields)
 
 function kapost_is_protected_meta($protected_fields, $field)
 {
-    if(!in_array($field, $protected_fields))
-        return false;
+	if(!in_array($field, $protected_fields))
+		return false;
 
-    if(function_exists('is_protected_meta'))
-        return is_protected_meta($field, 'post');
+	if(function_exists('is_protected_meta'))
+		return is_protected_meta($field, 'post');
 
-    return ($field[0] == '_');
+	return ($field[0] == '_');
 }
 
 function kapost_byline_protected_custom_fields($custom_fields)
-{       
-    if(!isset($custom_fields['_kapost_protected']))
-        return array();
+{		
+	if(!isset($custom_fields['_kapost_protected']))
+		return array();
 
-    $protected_fields = array();
-    foreach(explode('|', $custom_fields['_kapost_protected']) as $p)
-    {
-        list($prefix, $keywords) = explode(':', $p);
+	$protected_fields = array();
+	foreach(explode('|', $custom_fields['_kapost_protected']) as $p)
+	{
+		list($prefix, $keywords) = explode(':', $p);
 
-        $prefix = trim($prefix);
-        foreach(explode(',', $keywords) as $k)
-        {
-            $kk = trim($k);
-            $protected_fields[] = "_${prefix}_${kk}";
-        }
-    }   
-        
-    $pcf = array();
-    foreach($custom_fields as $k => $v)
-    {   
-        if(kapost_is_protected_meta($protected_fields, $k))
-            $pcf[$k] = $v;                                                                                                
-    }
-    
-    return $pcf;
+		$prefix = trim($prefix);
+		if(empty($keywords))
+		{	
+			$protected_fields[] = "_${prefix}";
+			continue;
+		}
+
+		foreach(explode(',', $keywords) as $k)
+		{
+			$kk = trim($k);
+			$protected_fields[] = "_${prefix}_${kk}";
+		}
+	}	
+		
+	$pcf = array();
+	foreach($custom_fields as $k => $v)
+	{	
+		if(kapost_is_protected_meta($protected_fields, $k))
+			$pcf[$k] = $v;																								  
+	}
+	
+	return $pcf;
 }
 
 function kapost_byline_update_post_data($data, $custom_fields, $blog_id=0)
 {
-    // if this is a draft then clear the 'publish date' or set our own
-    if($data['post_status'] == 'draft')
+	// if this is a draft then clear the 'publish date' or set our own
+	if($data['post_status'] == 'draft')
 	{
 		if(isset($custom_fields['kapost_publish_date']))
 		{
@@ -70,28 +76,28 @@ function kapost_byline_update_post_data($data, $custom_fields, $blog_id=0)
 			$data['post_date'] = '0000-00-00 00:00:00';
 			$data['post_date_gmt'] = '0000-00-00 00:00:00';
 		}
-    }
+	}
 
-    // set our custom type
-    if(KAPOST_BYLINE_WP3 && isset($custom_fields['kapost_custom_type']))
-    {
-        $custom_type = $custom_fields['kapost_custom_type'];
-        if(!empty($custom_type) && post_type_exists($custom_type))
-            $data['post_type'] = $custom_type;
-    }
+	// set our custom type
+	if(KAPOST_BYLINE_WP3 && isset($custom_fields['kapost_custom_type']))
+	{
+		$custom_type = $custom_fields['kapost_custom_type'];
+		if(!empty($custom_type) && post_type_exists($custom_type))
+			$data['post_type'] = $custom_type;
+	}
 
 	// exit early in preview mode because we don't want to create the user just yet
 	if(isset($GLOBALS['KAPOST_BYLINE_PREVIEW']))
 		return $data;
 
-    // create user if necessary
-    $uid = kapost_byline_create_user($custom_fields, $blog_id);
+	// create user if necessary
+	$uid = kapost_byline_create_user($custom_fields, $blog_id);
 
-    // set our post author
-    if($uid !== false && $data['post_author'] != $uid)
-        $data['post_author'] = $uid;
+	// set our post author
+	if($uid !== false && $data['post_author'] != $uid)
+		$data['post_author'] = $uid;
 
-    return $data;
+	return $data;
 }
 
 function kapost_byline_is_simple_field($k)
@@ -109,10 +115,10 @@ function kapost_byline_update_simple_fields($id, $custom_fields)
 
 	// store Simple Fields specific protected custom fields
 	foreach($custom_fields as $k => $v) 
-	{   
+	{	
 		// keys must be in this format: _simple_fields_fieldGroupID_1_fieldID_1_numInSet_0
 		if(kapost_byline_is_simple_field($k))
-		{   
+		{	
 			$value = $custom_fields[$k];
 
 			// is this an image?
@@ -124,12 +130,12 @@ function kapost_byline_update_simple_fields($id, $custom_fields)
 				// if the image was found, set the ID
 				if(!empty($image) && is_object($image))
 					add_post_meta($id, $k, $image->ID);
-			}   
+			}	
 			else // default is text field/area
-			{   
+			{	
 				add_post_meta($id, $k, $value);
-			}   
-		}   
+			}	
+		}	
 	}
 }
 
@@ -138,7 +144,7 @@ function kapost_byline_update_post_image_fields($id, $custom_fields)
 	global $wpdb;
 
 	foreach($custom_fields as $k => $v) 
-	{   
+	{	
 		// skip simple fields because those are being handled differently
 		if(kapost_byline_is_simple_field($k))
 			continue;
@@ -221,7 +227,7 @@ function kapost_byline_update_post_meta_data($id, $custom_fields)
 			$real_key = substr($k, 15); // Grab all the characters after the prefix
 			
 			delete_post_meta($id, $real_key);
-			foreach(explode('|||', $v) as $exploded_field)  // Separate the value by ||| delimiters
+			foreach(explode('|||', $v) as $exploded_field)	// Separate the value by ||| delimiters
 			{
 				add_post_meta($id, $real_key, $exploded_field); // Add a custom field with the same name for each value
 			}
@@ -244,7 +250,7 @@ function kapost_byline_update_post_meta_data($id, $custom_fields)
 	if(!empty($taxonomies))
 	{
 		foreach($custom_fields as $k => $v)
-		{                                                                                                                         
+		{																														  
 			if(in_array($k, $taxonomies))
 				wp_set_object_terms($id, explode(',', $v), $k);
 		}
