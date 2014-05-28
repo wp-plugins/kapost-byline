@@ -4,6 +4,13 @@ function kapost_byline_xmlrpc_version()
 	return KAPOST_BYLINE_VERSION;
 }
 
+function kapost_byline_xmlrpc_die($message)
+{
+	$error = new IXR_Error(500, print_r($message, true));
+	echo $error->getXml();
+	exit(1);
+}
+
 function kapost_byline_xmlrpc_newPost($args)
 {
 	global $wp_xmlrpc_server;
@@ -15,7 +22,10 @@ function kapost_byline_xmlrpc_editPost($args)
 	global $wp_xmlrpc_server, $current_site;
 	
 	if(KAPOST_BYLINE_WP3DOT4 == false)
+	{
+		kapost_byline_wpml_do_action(null, true);
 		return $wp_xmlrpc_server->mw_editPost($args);
+	}
 
 	$_args = $args;
 	$wp_xmlrpc_server->escape($_args);
@@ -38,7 +48,10 @@ function kapost_byline_xmlrpc_editPost($args)
 		return new IXR_Error(404, __('Invalid post ID.'));
 
 	if(in_array($post->post_type, array('post', 'page')))
+	{
+		kapost_byline_wpml_do_action(null, true);
 		return $wp_xmlrpc_server->mw_editPost($args);
+	}
 
 	// to avoid double escaping the content structure in wp_editPost
 	// point data to the original structure
@@ -66,7 +79,15 @@ function kapost_byline_xmlrpc_editPost($args)
 	if(isset($data['categories']) && !empty($data['categories']) && is_array($data['categories']))
 		$content_struct['terms_names']['category'] = $data['categories'];
 
+	kapost_byline_wpml_do_action('metaWeblog.editPost', true);
 	return $wp_xmlrpc_server->wp_editPost(array($blog_id, $args[1], $args[2], $args[0], $content_struct));
+}
+
+function kapost_byline_xmlrpc_getPost($args)
+{
+	global $wp_xmlrpc_server;
+	kapost_byline_wpml_do_action(null, true);
+	return $wp_xmlrpc_server->mw_getPost($args);
 }
 
 function kapost_byline_xmlrpc_newMediaObject($args)
@@ -164,11 +185,12 @@ function kapost_byline_xmlrpc_getPermalink($args)
 
 function kapost_byline_xmlrpc($methods)
 {
-	$methods['kapost.version'] = 'kapost_byline_xmlrpc_version';
-	$methods['kapost.newPost'] = 'kapost_byline_xmlrpc_newPost';
-	$methods['kapost.editPost'] = 'kapost_byline_xmlrpc_editPost';
-	$methods['kapost.newMediaObject'] = 'kapost_byline_xmlrpc_newMediaObject';
-	$methods['kapost.getPermalink']	= 'kapost_byline_xmlrpc_getPermalink';
+	$methods['kapost.version']			= 'kapost_byline_xmlrpc_version';
+	$methods['kapost.newPost']			= 'kapost_byline_xmlrpc_newPost';
+	$methods['kapost.editPost']			= 'kapost_byline_xmlrpc_editPost';
+	$methods['kapost.getPost']			= 'kapost_byline_xmlrpc_getPost';
+	$methods['kapost.newMediaObject']	= 'kapost_byline_xmlrpc_newMediaObject';
+	$methods['kapost.getPermalink']		= 'kapost_byline_xmlrpc_getPermalink';
 	return $methods;
 }
 add_filter('xmlrpc_methods', 'kapost_byline_xmlrpc');
