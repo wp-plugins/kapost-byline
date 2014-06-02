@@ -14,7 +14,13 @@ function kapost_byline_xmlrpc_die($message)
 function kapost_byline_xmlrpc_newPost($args)
 {
 	global $wp_xmlrpc_server;
-	return $wp_xmlrpc_server->mw_newPost($args);
+
+	$post_id = $wp_xmlrpc_server->mw_newPost($args);
+
+	if(!empty($post_id) && $post_id)
+		kapost_byline_wpml_do_action('metaWeblog.newPost', array($post_id, $args));
+
+	return $post_id;
 }
 
 function kapost_byline_xmlrpc_editPost($args)
