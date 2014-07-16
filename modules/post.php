@@ -166,8 +166,37 @@ function kapost_byline_update_post_image_fields($id, $custom_fields)
 	}
 }
 
+function kapost_byline_update_hash_custom_fields($id, $custom_fields)
+{
+	$hash_custom_fields = array();
+
+	foreach($custom_fields as $k => $v) 
+	{   
+		// starts with?
+		if(!empty($v) && strpos($k, '_kapost_hash_') === 0)
+		{   
+			$kk = str_replace('_kapost_hash_', '', $k);
+			$vv = @json_decode(@base64_decode($v), true);
+
+			if(is_array($vv))
+				$hash_custom_fields[$kk] = $vv;
+		}   
+	}   
+
+	foreach($hash_custom_fields as $k => $v) 
+	{   
+		unset($custom_fields[$k]);
+
+		delete_post_meta($id, $k);
+		add_post_meta($id, $k, $v);
+	}   
+}
+
 function kapost_byline_update_post_meta_data($id, $custom_fields)
 {
+	// set any "hash" custom fields
+	kapost_byline_update_hash_custom_fields($id, $custom_fields);
+
 	// set our featured image
 	if(isset($custom_fields['kapost_featured_image']))
 	{
