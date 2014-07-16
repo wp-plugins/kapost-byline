@@ -189,6 +189,11 @@ function kapost_byline_xmlrpc_getPermalink($args)
 	return get_permalink($post);
 }
 
+function kapost_byline_xmlrpc_wck_is_installed()
+{
+    return defined('WCK_PLUGIN_DIR');
+}
+
 function kapost_byline_xmlrpc($methods)
 {
 	$methods['kapost.version']			= 'kapost_byline_xmlrpc_version';
@@ -197,6 +202,7 @@ function kapost_byline_xmlrpc($methods)
 	$methods['kapost.getPost']			= 'kapost_byline_xmlrpc_getPost';
 	$methods['kapost.newMediaObject']	= 'kapost_byline_xmlrpc_newMediaObject';
 	$methods['kapost.getPermalink']		= 'kapost_byline_xmlrpc_getPermalink';
+	$methods['kapost.wckIsInstalled'] = 'kapost_byline_xmlrpc_wck_is_installed';
 	return $methods;
 }
 add_filter('xmlrpc_methods', 'kapost_byline_xmlrpc');
