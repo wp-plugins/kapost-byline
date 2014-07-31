@@ -7,8 +7,7 @@ function kapost_byline_xmlrpc_version()
 function kapost_byline_xmlrpc_die($message)
 {
 	$error = new IXR_Error(500, print_r($message, true));
-	echo $error->getXml();
-	exit(1);
+	die($error->getXml());
 }
 
 function kapost_byline_xmlrpc_newPost($args)
@@ -17,8 +16,11 @@ function kapost_byline_xmlrpc_newPost($args)
 
 	$post_id = $wp_xmlrpc_server->mw_newPost($args);
 
-	if(!empty($post_id) && $post_id)
-		kapost_byline_wpml_do_action('metaWeblog.newPost', array($post_id, $args));
+	if(is_string($post_id))
+	{
+		kapost_byline_wpml_new_post($post_id, $args);
+		kapost_byline_wpml_update_terms($post_id, $args);
+	}
 
 	return $post_id;
 }
@@ -30,7 +32,13 @@ function kapost_byline_xmlrpc_editPost($args)
 	if(KAPOST_BYLINE_WP3DOT4 == false)
 	{
 		kapost_byline_wpml_do_action(null, true);
-		return $wp_xmlrpc_server->mw_editPost($args);
+		
+		$result = $wp_xmlrpc_server->mw_editPost($args);
+
+		if($result === true)
+			kapost_byline_wpml_update_terms($args[0], $args);
+
+		return $result;
 	}
 
 	$_args = $args;
@@ -56,7 +64,13 @@ function kapost_byline_xmlrpc_editPost($args)
 	if(in_array($post->post_type, array('post', 'page')))
 	{
 		kapost_byline_wpml_do_action(null, true);
-		return $wp_xmlrpc_server->mw_editPost($args);
+
+		$result = $wp_xmlrpc_server->mw_editPost($args);
+
+		if($result === true)
+			kapost_byline_wpml_update_terms($post_id, $args);
+
+		return $result;
 	}
 
 	// to avoid double escaping the content structure in wp_editPost
@@ -86,7 +100,12 @@ function kapost_byline_xmlrpc_editPost($args)
 		$content_struct['terms_names']['category'] = $data['categories'];
 
 	kapost_byline_wpml_do_action('metaWeblog.editPost', true);
-	return $wp_xmlrpc_server->wp_editPost(array($blog_id, $args[1], $args[2], $args[0], $content_struct));
+	$result = $wp_xmlrpc_server->wp_editPost(array($blog_id, $args[1], $args[2], $args[0], $content_struct));
+
+	if($result === true)
+		kapost_byline_wpml_update_terms($post_id, $args);
+
+	return $result;
 }
 
 function kapost_byline_xmlrpc_getPost($args)

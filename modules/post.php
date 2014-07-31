@@ -271,7 +271,7 @@ function kapost_byline_update_post_meta_data($id, $custom_fields)
 	}
 
 	// check and store protected custom fields used by Simple Fields
-	if(defined('EASY_FIELDS_VERSION'))
+	if(defined('EASY_FIELDS_VERSION') || class_exists('simple_fields'))
 		kapost_byline_update_simple_fields($id, $custom_fields);
 
 	// match custom fields to custom taxonomies if appropriate
