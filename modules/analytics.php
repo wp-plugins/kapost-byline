@@ -1,25 +1,4 @@
 <?php
-function kapost_byline_verify_analytics_url($url)
-{
-	if(empty($url)) return false;
-
-	$hash= md5($url);
-	$hashes = array('7dd0fdf1c9ddf706f2d7db3ac9394f47',
-					'6d24b20936cc0813222f0d811bbf3cae',
-					'8a0e9264f92e006f5655b4c19d4cab10',
-					'2e80e3bdbcfc7099625a183b058d6117',
-					'07231c6f8912f13f1fa43436b5854590',
-					'58619923a812c8175c245f6180ba9669',
-					'84573bbf41383a6a8fc402f9a550c434');
-
-	foreach($hashes as $h)
-	{
-		if($hash == $h)
-			return true;
-	}
-
-	return false;
-}
 function kapost_byline_get_post()
 {
 	global $wp_query, $post;
@@ -43,10 +22,7 @@ function kapost_byline_inject_analytics()
 	if(empty($kapost_analytics))
 		return;
 
-	if(kapost_byline_verify_analytics_url($kapost_analytics['url']) == false)
-		return;
-
-	$url = esc_js($kapost_analytics['url']);
+	$url = KAPOST_BYLINE_ANALYTICS_URL;
 
 	$post_id = esc_js($kapost_analytics['post_id']);
 
