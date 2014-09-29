@@ -60,6 +60,29 @@ function kapost_byline_protected_custom_fields($custom_fields)
 	return $pcf;
 }
 
+function kapost_byline_update_array_custom_fields($id, $custom_fields)
+{
+	$prefix = '_kapost_array_';
+	foreach($custom_fields as $k => $v)
+	{
+		if(strpos($k, $prefix) === 0)
+		{
+			$meta_key = str_replace($prefix, '', $k);
+			delete_post_meta($id, $meta_key);
+
+			if(empty($v))
+				continue;
+			
+			$meta_values = @json_decode(@base64_decode($v), true);
+			if(!is_array($meta_values))
+				continue;
+
+			foreach($meta_values as $meta_value)
+				add_post_meta($id, $meta_key, $meta_value);
+		}
+	}
+}
+
 function kapost_byline_update_post_data($data, $custom_fields, $blog_id=0)
 {
 	// if this is a draft then clear the 'publish date' or set our own
@@ -166,8 +189,35 @@ function kapost_byline_update_post_image_fields($id, $custom_fields)
 	}
 }
 
+function kapost_byline_update_hash_custom_fields($id, $custom_fields)
+{
+	$prefix = '_kapost_hash_';
+	foreach($custom_fields as $k => $v) 
+	{   
+		// starts with?
+		if(strpos($k, $prefix) === 0)
+		{   
+			$kk = str_replace($prefix, '', $k);
+			delete_post_meta($id, $kk);
+
+			if(empty($v))
+				continue;
+
+			$vv = @json_decode(@base64_decode($v), true);
+			if(is_array($vv))
+				add_post_meta($id, $kk, $vv);
+		}
+	}
+}
+
 function kapost_byline_update_post_meta_data($id, $custom_fields)
 {
+	// set any "array" custom fields
+	kapost_byline_update_array_custom_fields($id, $custom_fields);
+
+	// set any "hash" custom fields
+	kapost_byline_update_hash_custom_fields($id, $custom_fields);
+
 	// set our featured image
 	if(isset($custom_fields['kapost_featured_image']))
 	{
@@ -186,7 +236,7 @@ function kapost_byline_update_post_meta_data($id, $custom_fields)
 
 	// store our image custom fields as IDs instead of URLs
 	$settings = kapost_byline_settings();
-	if($settings['image_custom_fields'] == 'on')
+	if(isset($settings['image_custom_fields']) && $settings['image_custom_fields'] == 'on')
 		kapost_byline_update_post_image_fields($id, $custom_fields);
 
 	// store our protected custom field required by our analytics
@@ -219,30 +269,8 @@ function kapost_byline_update_post_meta_data($id, $custom_fields)
 		}
 	}
 
-	$fields_processed = array();
-	foreach($custom_fields as $k => $v)
-	{
-		if (strpos($k, "_kapost_merged_") === 0) // If the key starts with _kapost_merged_
-		{
-			$real_key = substr($k, 15); // Grab all the characters after the prefix
-			
-			delete_post_meta($id, $real_key);
-			foreach(explode('|||', $v) as $exploded_field)	// Separate the value by ||| delimiters
-			{
-				add_post_meta($id, $real_key, $exploded_field); // Add a custom field with the same name for each value
-			}
-
-			array_push($fields_processed, $k);
-		}
-	}
-	foreach($fields_processed as $field_processed) 
-	{
-		delete_post_meta($id, $field_processed); // Clean up by removing the merged key's custom field
-		unset($custom_fields[$field_processed]); // Clean up by removing that key from the array
-	}
-
 	// check and store protected custom fields used by Simple Fields
-	if(defined('EASY_FIELDS_VERSION'))
+	if(defined('EASY_FIELDS_VERSION') || class_exists('simple_fields'))
 		kapost_byline_update_simple_fields($id, $custom_fields);
 
 	// match custom fields to custom taxonomies if appropriate
@@ -250,9 +278,12 @@ function kapost_byline_update_post_meta_data($id, $custom_fields)
 	if(!empty($taxonomies))
 	{
 		foreach($custom_fields as $k => $v)
-		{																														  
+		{																													  
 			if(in_array($k, $taxonomies))
+			{
 				wp_set_object_terms($id, explode(',', $v), $k);
+				delete_post_meta($id, $k);
+			}
 		}
 	}
 }
