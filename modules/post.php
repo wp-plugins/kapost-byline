@@ -240,7 +240,7 @@ function kapost_byline_update_post_meta_data($id, $custom_fields)
 		kapost_byline_update_post_image_fields($id, $custom_fields);
 
 	// store our protected custom field required by our analytics
-	if(isset($custom_fields['_kapost_analytics_url']))
+	if(isset($custom_fields['_kapost_analytics_post_id']))
 	{
 		delete_post_meta($id, '_kapost_analytics');
 
