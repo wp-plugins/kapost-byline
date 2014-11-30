@@ -132,6 +132,18 @@ function kapost_byline_xmlrpc_newMediaObject($args)
 	if(!current_user_can('upload_files'))
 		return new IXR_Error(401, __('You are not allowed to upload files to this site.'));
 
+	if(is_array($data) && isset($data['overwrite']) && $data['overwrite'] && isset($data['name']) && !empty($data['name']))
+	{   
+		$attachment = $wpdb->get_row($wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE post_type = 'attachment' AND post_title = %s LIMIT 1", $data['name']));
+
+		if(!empty($attachment))
+			wp_delete_attachment($attachment->ID);
+
+		// do not pass overwrite to mw_newMediaObject down below because that has
+		// a slightly different and unwanted behaviour in this case
+		unset($args[3]['overwrite']);
+	}
+
 	$image = $wp_xmlrpc_server->mw_newMediaObject($args);
 	if(!is_array($image) || empty($image['url']))
 		return $image;
