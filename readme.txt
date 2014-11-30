@@ -3,7 +3,7 @@ Contributors: iamnader, icebreaker, worldnamer
 Tags: social, publishing
 Requires at least: 2.9
 Tested up to: 4.0.0
-Stable tag: 1.9.2
+Stable tag: 1.9.3
 
 This Kapost plug-in is a companion with the instance that you can create at Kapost.com.
 
@@ -20,6 +20,9 @@ For more information, visit the [Kapost](http://www.kapost.com) and [Kapost Help
 1. Activate the plugin through the 'Plugins' menu in WordPress
 
 == Changelog ==
+= 1.9.3 =
+* improved kapost.newMediaObject
+
 = 1.9.2 =
 * analytics improvement
 
@@ -143,6 +146,9 @@ For more information, visit the [Kapost](http://www.kapost.com) and [Kapost Help
 * First version
 
 == Upgrade Notice ==
+= 1.9.3 =
+* improved kapost.newMediaObject
+
 = 1.9.2 =
 * analytics improvement
 
