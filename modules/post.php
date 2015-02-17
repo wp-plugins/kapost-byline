@@ -148,7 +148,7 @@ function kapost_byline_update_simple_fields($id, $custom_fields)
 			$matches = kapost_byline_validate_image_url($value);
 			if(!empty($matches))
 			{ 
-				$image = $wpdb->get_row($wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE post_type = 'attachment' AND guid = %s LIMIT 1", $value));
+				$image = kapost_byline_get_attachment_by_url($value);
 
 				// if the image was found, set the ID
 				if(!empty($image) && is_object($image))
@@ -164,8 +164,6 @@ function kapost_byline_update_simple_fields($id, $custom_fields)
 
 function kapost_byline_update_post_image_fields($id, $custom_fields)
 {
-	global $wpdb;
-
 	foreach($custom_fields as $k => $v) 
 	{	
 		// skip simple fields because those are being handled differently
@@ -180,7 +178,7 @@ function kapost_byline_update_post_image_fields($id, $custom_fields)
 			continue;
 
 		// find the image based on the URL
-		$image = $wpdb->get_row($wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE post_type = 'attachment' AND guid = %s LIMIT 1", $value));
+		$image = kapost_byline_get_attachment_by_url($value);
 		if(empty($image) || !is_object($image))
 			continue;
 
@@ -222,8 +220,7 @@ function kapost_byline_update_post_meta_data($id, $custom_fields)
 	if(isset($custom_fields['kapost_featured_image']))
 	{
 		// look up the image by URL which is the GUID (too bad there's NO wp_ specific method to do this, oh well!)
-		global $wpdb;
-		$thumbnail = $wpdb->get_row($wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE post_type = 'attachment' AND guid = %s LIMIT 1", $custom_fields['kapost_featured_image']));
+		$thumbnail = kapost_byline_get_attachment_by_url($custom_fields['kapost_featured_image']);
 
 		// if the image was found, set it as the featured image for the current post
 		if(!empty($thumbnail))
