@@ -148,7 +148,8 @@ function kapost_byline_xmlrpc_newMediaObject($args)
 	if(!is_array($image) || empty($image['url']))
 		return $image;
 
-	$attachment = $wpdb->get_row($wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE post_type = 'attachment' AND guid = %s LIMIT 1", $image['url']));
+	$attachment = kapost_byline_get_attachment_by_url($image['url']);
+
 	if(empty($attachment))
 		return $image;
 
@@ -178,7 +179,9 @@ function kapost_byline_xmlrpc_newMediaObject($args)
 	if(isset($data['alt'])) 
 		add_post_meta($attachment->ID, '_wp_attachment_image_alt', sanitize_text_field($data['alt']));
 
-	$image['id'] = $attachment->ID;
+	if(!isset($image['id']))
+		$image['id'] = $attachment->ID;
+
 	return $image;
 }
 
