@@ -8,7 +8,7 @@ function kapost_byline_get_post()
 
 	return $post;
 }
-function kapost_byline_inject_analytics() 
+function kapost_byline_inject_analytics()
 {
 	if(!is_single())
 		return;
@@ -37,10 +37,11 @@ echo "<!-- BEGIN KAPOST ANALYTICS CODE -->
 var _kaq = _kaq || [];
 _kaq.push([2, '$post_id', '$site_id']);
 (function(){
-var ka = document.createElement('script'); ka.async=true; ka.id='ka_tracker'; ka.src='$url/ka.js';
+var scheme = location.protocol == 'https:' ? location.protocol : 'http:';
+var ka = document.createElement('script'); ka.async=true; ka.id='ka_tracker'; ka.src= scheme + '$url/ka.js';
 var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ka, s);
 })();
-//--> 
+//-->
 </script>
 <!-- END KAPOST ANALYTICS CODE -->";
 }
